@@ -1,0 +1,64 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# The workflow only reads the repository; nothing it runs can write to it.
+permissions:
+  contents: read
+
+# A newer push to the same branch replaces a run still in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Update Rust
+      run: |
+        rustup update stable --no-self-update
+        rustup default stable
+        rustup component add clippy rustfmt
+
+    - name: Cache dependencies and build output
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry/index
+          ~/.cargo/registry/cache
+          ~/.cargo/git/db
+          target
+        key: windows-cargo-${{ hashFiles('Cargo.lock') }}
+        restore-keys: windows-cargo-
+
+    - name: Check formatting
+      run: cargo fmt --check
+
+    - name: Clippy
+      run: cargo clippy --all-targets --locked -- -D warnings
+
+    - name: Run tests
+      run: cargo test --locked
+
+    - name: Build release
+      run: cargo build --release --locked
+
+    - name: Upload exe
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v4
+      with:
+        name: discord-quest-assistant
+        path: target/release/discord-quest-assistant.exe
+        retention-days: 14
+        if-no-files-found: error
