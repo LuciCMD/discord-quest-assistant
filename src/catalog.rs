@@ -234,7 +234,7 @@ mod tests {
         assert_eq!(names, ["Where Winds Meet", "Marathon", "Garry's Mod"]);
         assert_eq!(catalog.games[0].exes, ["wwm.exe", "where winds meet.exe"]);
         assert_eq!(catalog.games[1].steam, [3_065_800]);
-        assert!(catalog.games[1].exes.is_empty());
+        assert_eq!(catalog.games[1].exes, Vec::<String>::new());
         assert_eq!(catalog.games[2].exes, ["gmod.exe"]);
     }
 
@@ -243,7 +243,7 @@ mod tests {
         let catalog = Catalog::from_discord(SAMPLE.as_bytes(), 1).unwrap();
         assert_eq!(catalog.search("marathon", 10), [1]);
         assert_eq!(catalog.search("  WINDS ", 10), [0]);
-        assert!(catalog.search("", 10).is_empty());
+        assert_eq!(catalog.search("", 10), Vec::<usize>::new());
     }
 
     #[test]
@@ -264,7 +264,8 @@ mod tests {
             find("Where Winds Meet").exes,
             ["wwm.exe", "where winds meet.exe"]
         );
-        assert!(find("Marathon").exes.is_empty() && !find("Marathon").steam.is_empty());
+        assert_eq!(find("Marathon").exes, Vec::<String>::new());
+        assert_ne!(find("Marathon").steam, Vec::<u32>::new());
         println!("{} usable games", catalog.games.len());
     }
 }

@@ -282,7 +282,8 @@ mod tests {
 
         fs::write(&path, b"{ not json").unwrap();
         let (empty, note) = Journal::load(&path);
-        assert!(empty.entries().is_empty() && note.is_some());
+        assert_eq!(empty.entries().len(), 0);
+        assert!(note.is_some());
         assert!(tmp.path().join("sessions.damaged.json").exists());
     }
 }

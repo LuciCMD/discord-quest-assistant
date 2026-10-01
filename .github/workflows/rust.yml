@@ -25,11 +25,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Update Rust
-      run: |
-        rustup update stable --no-self-update
-        rustup default stable
-        rustup component add clippy rustfmt
+    - name: Install Rust
+      # The version and components come from rust-toolchain.toml.
+      run: rustup toolchain install
 
     - name: Cache dependencies and build output
       uses: actions/cache@v4
@@ -39,7 +37,7 @@ jobs:
           ~/.cargo/registry/cache
           ~/.cargo/git/db
           target
-        key: windows-cargo-${{ hashFiles('Cargo.lock') }}
+        key: windows-cargo-${{ hashFiles('rust-toolchain.toml', 'Cargo.lock') }}
         restore-keys: windows-cargo-
 
     - name: Check formatting

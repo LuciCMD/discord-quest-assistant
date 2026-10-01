@@ -1,0 +1,6 @@
+# Local builds and CI use the same Rust, so a new release can't change lint results unannounced.
+# To upgrade, change the version here and fix whatever the new clippy reports.
+[toolchain]
+channel = "1.99.0"
+profile = "minimal"
+components = ["clippy", "rustfmt"]

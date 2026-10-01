@@ -309,7 +309,10 @@ mod tests {
             missing_dirs(&base, &file),
             [base.join("bin/win64"), base.join("bin/win64/sub")]
         );
-        assert!(missing_dirs(&base, &base.join("game.exe")).is_empty());
+        assert_eq!(
+            missing_dirs(&base, &base.join("game.exe")),
+            Vec::<PathBuf>::new()
+        );
     }
 
     #[test]
