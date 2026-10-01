@@ -1,0 +1,4 @@
+# The C runtime is linked in, so the exe needs no Visual C++ redistributable and never loads a
+# vcruntime140.dll from the folder it runs in (game folders often ship one).
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
