@@ -1,0 +1,44 @@
+name: Release
+
+# Pushing a version tag such as v0.1.0 builds the exe and publishes it as a GitHub release
+on:
+  push:
+    tags: [ "v*" ]
+
+# Write access is needed to create the release, and nothing else
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      # Version and components come from rust-toolchain.toml
+      run: rustup toolchain install
+
+    - name: Check the tag matches Cargo.toml
+      env:
+        TAG: ${{ github.ref_name }}
+      run: |
+        $version = (cargo metadata --no-deps --format-version 1 --locked | ConvertFrom-Json).packages[0].version
+        if ($env:TAG -ne "v$version") { throw "Tag $env:TAG doesn't match version $version in Cargo.toml" }
+
+    - name: Run tests
+      run: cargo test --locked
+
+    - name: Build release
+      run: cargo build --release --locked
+
+    - name: Publish release
+      # The tag goes in through the environment, never pasted into the script
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ github.ref_name }}
+      run: gh release create "$env:TAG" target/release/discord-quest-assistant.exe --title "$env:TAG" --generate-notes
