@@ -1,4 +1,5 @@
-//! DLL search hardening, and the app icon rendered from `assets/icon.svg`
+//! DLL search hardening, the app icon rendered from `assets/icon.svg` and the button icons from
+//! `assets/icons`
 //!
 //! Windows looks for DLLs beside the exe before System32, and in Steam mode the copy runs inside
 //! a game folder, so a planted or half-downloaded DLL there would load into it
@@ -16,6 +17,12 @@ const ICON_SVG: &str = "assets/icon.svg";
 const ICO_SIZES: [u32; 9] = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 /// The window icon, which `src/ui/icon.rs` reads back with the same size
 const WINDOW_ICON: u32 = 64;
+/// Button icons drawn white so the UI can tint them, 32 px for a 16 px icon at up to 200% scaling
+const BUTTON_ICONS: [(&str, &str); 2] = [
+    ("assets/icons/list-start.svg", "queue-top.rgba"),
+    ("assets/icons/list-end.svg", "queue-bottom.rgba"),
+];
+const BUTTON_ICON: u32 = 32;
 
 fn main() -> Result<(), Box<dyn Error>> {
     // LOAD_LIBRARY_SEARCH_SYSTEM32
@@ -26,6 +33,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let out = PathBuf::from(env::var("OUT_DIR")?);
     let tree = usvg::Tree::from_data(&fs::read(ICON_SVG)?, &usvg::Options::default())?;
     fs::write(out.join("icon-64.rgba"), render(&tree, WINDOW_ICON)?)?;
+    for (svg, rgba) in BUTTON_ICONS {
+        println!("cargo:rerun-if-changed={svg}");
+        // currentColor would otherwise render black
+        let text = fs::read_to_string(svg)?.replace("currentColor", "#ffffff");
+        let icon = usvg::Tree::from_str(&text, &usvg::Options::default())?;
+        fs::write(out.join(rgba), render(&icon, BUTTON_ICON)?)?;
+    }
 
     let ico = out.join("icon.ico");
     write_ico(&tree, &ico)?;

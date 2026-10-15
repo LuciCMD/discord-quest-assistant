@@ -127,6 +127,17 @@ pub fn find_game(libraries: &[PathBuf], app_ids: &[u32]) -> Result<GameFolder, S
     Err(SteamError::NotStarted)
 }
 
+/// The folder as Steam's manifest describes it now, for a pick made a while ago
+/// Steam may have finished the download since
+pub fn recheck(folder: &GameFolder) -> Result<GameFolder, SteamError> {
+    let common = folder.folder.parent().filter(|p| p.ends_with("common"));
+    let apps = common
+        .and_then(Path::parent)
+        .filter(|p| p.ends_with("steamapps"));
+    let library = apps.and_then(Path::parent).ok_or(SteamError::NotStarted)?;
+    find_game(&[library.to_path_buf()], &[folder.app_id])
+}
+
 /// Windows launch options from Steam's app cache, the usual one first
 pub fn launch_options(libraries: &[PathBuf], app_id: u32) -> Result<Vec<LaunchOption>, SteamError> {
     let root = libraries.first().ok_or(SteamError::NotInstalled)?;

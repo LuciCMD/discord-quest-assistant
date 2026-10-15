@@ -4,9 +4,7 @@
 
 use std::time::{Duration, Instant};
 
-use eframe::egui::{
-    self, Align, CentralPanel, Frame, Layout, Margin, RichText, Ui, ViewportCommand,
-};
+use eframe::egui::{self, Align, CentralPanel, Frame, Layout, RichText, Ui, ViewportCommand};
 
 use super::{fonts, icon, theme, widgets};
 use crate::session::{MAX_MINUTES, PLAY_ARG};
@@ -41,7 +39,7 @@ pub fn run(args: PlayArgs) -> eframe::Result {
         viewport: egui::ViewportBuilder::default()
             .with_title(&args.title)
             .with_icon(icon::window_icon())
-            .with_inner_size([440.0, 200.0])
+            .with_inner_size([460.0, 196.0])
             .with_resizable(false)
             .with_maximize_button(false),
         renderer: eframe::Renderer::Glow,
@@ -76,22 +74,17 @@ impl eframe::App for PlayApp {
         if elapsed >= self.length {
             ui.ctx().send_viewport_cmd(ViewportCommand::Close);
         }
-        let frame = Frame::new()
-            .fill(theme::GROUND)
-            .inner_margin(Margin::symmetric(16, 16));
+        let frame = Frame::new().fill(theme::SURFACE);
         CentralPanel::default().frame(frame).show(ui, |ui| {
-            widgets::card(
-                ui,
-                &self.title,
-                Some("Discord sees this window as the game. Keep it open until the time is up."),
-                |ui| self.body(ui, elapsed),
-            );
+            let left = format!("{} left", clock(self.length.saturating_sub(elapsed)));
+            widgets::heading_bar(ui, &self.title, Some((&left, theme::ACCENT)));
+            widgets::padded(ui, |ui| self.body(ui, elapsed));
         });
         ui.ctx().request_repaint_after(Duration::from_millis(500));
     }
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
-        theme::GROUND.to_normalized_gamma_f32()
+        theme::SURFACE.to_normalized_gamma_f32()
     }
 }
 
@@ -99,19 +92,23 @@ impl PlayApp {
     fn body(&self, ui: &mut Ui, elapsed: Duration) {
         let fraction = elapsed.as_secs_f32() / self.length.as_secs_f32().max(1.0);
         widgets::progress_bar(ui, fraction);
-        ui.add_space(4.0);
+        ui.add_space(6.0);
         ui.horizontal(|ui| {
-            let left = self.length.saturating_sub(elapsed);
-            ui.label(
-                RichText::new(format!("{} left", clock(left)))
-                    .monospace()
-                    .color(theme::INK),
+            ui.add(
+                egui::Label::new(
+                    RichText::new(
+                        "Discord sees this window as the game. Keep it open until the time is up.",
+                    )
+                    .color(theme::MUTED),
+                )
+                .wrap(),
             );
-            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if ui.button("Stop").clicked() {
-                    ui.ctx().send_viewport_cmd(ViewportCommand::Close);
-                }
-            });
+        });
+        ui.add_space(8.0);
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            if widgets::danger_button(ui, "Stop").clicked() {
+                ui.ctx().send_viewport_cmd(ViewportCommand::Close);
+            }
         });
     }
 }

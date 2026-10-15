@@ -23,6 +23,10 @@ Steam instead. For those, turn on **Run from Steam Library**:
 2. Choose how long it runs. Most quests ask for 15 minutes; the default of 16 leaves a margin.
 3. Press **Start**, keep the Discord desktop app open, and wait.
 
+For several quests, queue the games and leave them. The two buttons beside each search result add
+the game to the top or bottom of the queue with its usual settings, and **Start Queue** runs them one
+after another. While a game runs, **Start** on a picked game becomes **Add to Queue**.
+
 If the quest doesn't move, try another executable from the list. In Steam mode, try another launch
 option, or enter the exe's path inside the game folder yourself (SteamDB and r/DiscordQuests list them).
 
@@ -68,5 +72,7 @@ accounts for it. Use it only on an account you're willing to risk.
 
 - The icon is *Board Game Jenga* from [Streamline](https://github.com/webalys-hq/streamline-vectors)'s
   Ultimate Color set, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-- The fonts are Roboto and Cascadia Mono, under the SIL Open Font License (licences in
+- The queue buttons use *List Start* and *List End* from [Lucide](https://lucide.dev), under the ISC
+  License (`assets/icons/Lucide-ISC.txt`).
+- The fonts are Lexend and Cascadia Mono, under the SIL Open Font License (licences in
   `assets/fonts`).

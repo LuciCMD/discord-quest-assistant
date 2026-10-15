@@ -1,12 +1,17 @@
-//! The window icon, rendered from `assets/icon.svg` by `build.rs`
+//! The window icon and the queue buttons' icons, rendered from SVG by `build.rs`
 //! The exe's own icon is embedded there too, as a resource
 
 use std::sync::Arc;
 
-use eframe::egui::IconData;
+use eframe::egui::{self, ColorImage, IconData, TextureHandle, TextureOptions};
 
 const SIZE: u32 = 64;
 const RGBA: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/icon-64.rgba"));
+
+/// White on clear, tinted where drawn
+const BUTTON_SIZE: usize = 32;
+const QUEUE_TOP: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/queue-top.rgba"));
+const QUEUE_BOTTOM: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/queue-bottom.rgba"));
 
 pub fn window_icon() -> Arc<IconData> {
     debug_assert_eq!(RGBA.len(), (SIZE * SIZE * 4) as usize);
@@ -15,6 +20,27 @@ pub fn window_icon() -> Arc<IconData> {
         width: SIZE,
         height: SIZE,
     })
+}
+
+/// Lucide's list-start and list-end, uploaded once per window
+#[derive(Clone)]
+pub struct QueueIcons {
+    pub top: TextureHandle,
+    pub bottom: TextureHandle,
+}
+
+impl QueueIcons {
+    pub fn load(ctx: &egui::Context) -> Self {
+        let texture = |name: &str, rgba: &[u8]| {
+            debug_assert_eq!(rgba.len(), BUTTON_SIZE * BUTTON_SIZE * 4);
+            let image = ColorImage::from_rgba_unmultiplied([BUTTON_SIZE, BUTTON_SIZE], rgba);
+            ctx.load_texture(name, image, TextureOptions::LINEAR)
+        };
+        Self {
+            top: texture("queue-top", QUEUE_TOP),
+            bottom: texture("queue-bottom", QUEUE_BOTTOM),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -30,6 +56,19 @@ mod tests {
             opaque > (SIZE * SIZE / 4) as usize,
             "only {opaque} visible pixels"
         );
+    }
+
+    #[test]
+    fn button_icons_are_white_so_a_tint_shows_true() {
+        for rgba in [QUEUE_TOP, QUEUE_BOTTOM] {
+            assert_eq!(rgba.len(), BUTTON_SIZE * BUTTON_SIZE * 4);
+            let drawn: Vec<&[u8]> = rgba.chunks(4).filter(|p| p[3] > 200).collect();
+            assert!(drawn.len() > 60, "only {} solid pixels", drawn.len());
+            assert!(
+                drawn.iter().all(|p| p[0] > 240 && p[1] > 240 && p[2] > 240),
+                "currentColor wasn't swapped for white"
+            );
+        }
     }
 
     const ICO: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/icon.ico"));

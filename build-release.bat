@@ -27,6 +27,9 @@ move /y "target\release\discord-quest-assistant.exe" "discord-quest-assistant.ex
     goto :fail
 )
 
+rem Explorer caches icons by path, so a rebuilt exe here would keep showing the previous icon
+ie4uinit.exe -show >nul 2>nul
+
 echo Done: %~dp0discord-quest-assistant.exe
 endlocal
 exit /b 0

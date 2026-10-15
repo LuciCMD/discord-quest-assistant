@@ -106,6 +106,21 @@ impl Running {
     }
 }
 
+#[cfg(test)]
+impl Running {
+    /// Any process standing in as a running game, with no journal entry behind it
+    pub fn for_test(game: &str, child: Child) -> Self {
+        Self {
+            id: format!("s{}", unique_number()),
+            game: game.to_owned(),
+            path: PathBuf::new(),
+            length: Duration::from_secs(60),
+            started: Instant::now(),
+            child,
+        }
+    }
+}
+
 /// This exe, as the source of copies and the hash that knows them again
 pub struct Me {
     pub exe: PathBuf,
